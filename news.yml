@@ -1,0 +1,34 @@
+name: Update News in README
+
+on:
+  schedule:
+    - cron: "0 6 * * *"  # 매일 오후 3시 (UTC 기준 6시)
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 리포지토리 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: News API로 뉴스 업데이트
+        run: |
+          pip install -r requirements.txt
+          python update_news.py
+        env:
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+
+      - name: 변경 사항 커밋 및 푸시
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "자동 업데이트: 뉴스 정보 갱신" || echo "No changes to commit"
+          git push
